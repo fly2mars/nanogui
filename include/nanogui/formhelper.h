@@ -268,10 +268,10 @@ public:
     
     
     /****************************************************************************/
-	/*                       Popup version                                      */
-	/****************************************************************************/
-	/// Add popup widget
-	PopupButton *addPopupButton(const std::string &label, Color bgColor, int icon = 0) {
+    /*                       Popup version                                      */
+    /****************************************************************************/
+    /// Add popup widget
+    PopupButton *addPopupButton(const std::string &label, Color bgColor, int icon = 0) {
 		PopupButton *button = new PopupButton(mWindow, label);
 		button->setIcon(icon);
 		button->setBackgroundColor(bgColor);
@@ -286,14 +286,14 @@ public:
 		mLayout->appendRow(0);
 		mLayout->setAnchor(button, nanogui::AdvancedGridLayout::Anchor(1, mLayout->rowCount() - 1, 3, 1));
 		return button;
-	}
-	/// Popup version: Add a new group that may contain several sub-widgets
-	Label *addGroupOnPopup(const std::string &caption) {
+    }
+    /// Popup version: Add a new group that may contain several sub-widgets
+    Label *addGroupOnPopup(const std::string &caption) {
 		Label* label = new Label(mCurPopupWindow, caption, mGroupFontName, mGroupFontSize);
 		return label;
-	}
-	/// Popup version: Add a button with a custom callback on popup widget
-	Button *addButtonOnPopupWindow(const std::string &label, const std::function<void()> &cb, int icon = 0) {
+    }
+    /// Popup version: Add a button with a custom callback on popup widget
+    Button *addButtonOnPopupWindow(const std::string &label, const std::function<void()> &cb, int icon = 0) {
 		Widget *statePanel = new Widget(mCurPopupWindow);
 		statePanel->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 0, 0));
 		Button *button = new Button(statePanel, label, icon);
@@ -301,7 +301,7 @@ public:
 		button->setFixedHeight(25);
 		button->setFixedWidth(120);
 		return button;
-	}
+     }
 
 	/// Popup version: Add a grid layout on popup widget
 	/// Usage:
