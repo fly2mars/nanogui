@@ -265,17 +265,103 @@ public:
 
     /// Sets the size of the font being used for non-group / non-label widgets.
     void setWidgetFontSize(int value) { mWidgetFontSize = value; }
+    
+    
+    /****************************************************************************/
+	/*                       Popup version                                      */
+	/****************************************************************************/
+	/// Add popup widget
+	PopupButton *addPopupButton(const std::string &label, Color bgColor, int icon = 0) {
+		PopupButton *button = new PopupButton(mWindow, label);
+		button->setIcon(icon);
+		button->setBackgroundColor(bgColor);
+		button->setFixedHeight(25);
+		mCurPopupWindow = button->popup();
 
-protected:
+		mCurGroupLayout = new GroupLayout();
+		mCurPopupWindow->setLayout(mCurGroupLayout);
+		//new Label(mCurPopupWindow, label, "sans-bold");
+
+		//Add popup button to parent window
+		mLayout->appendRow(0);
+		mLayout->setAnchor(button, nanogui::AdvancedGridLayout::Anchor(1, mLayout->rowCount() - 1, 3, 1));
+		return button;
+	}
+	/// Popup version: Add a new group that may contain several sub-widgets
+	Label *addGroupOnPopup(const std::string &caption) {
+		Label* label = new Label(mCurPopupWindow, caption, mGroupFontName, mGroupFontSize);
+		return label;
+	}
+	/// Popup version: Add a button with a custom callback on popup widget
+	Button *addButtonOnPopupWindow(const std::string &label, const std::function<void()> &cb, int icon = 0) {
+		Widget *statePanel = new Widget(mCurPopupWindow);
+		statePanel->setLayout(new BoxLayout(Orientation::Vertical, Alignment::Fill, 0, 0));
+		Button *button = new Button(statePanel, label, icon);
+		button->setCallback(cb);
+		button->setFixedHeight(25);
+		button->setFixedWidth(120);
+		return button;
+	}
+
+	/// Popup version: Add a grid layout on popup widget
+	/// Usage:
+	///       ngui->addAdvancedGridLayoutOnPopup()
+	///       ngui->addButtonOnPopupWindow("hi", [&]() {std::cout << "hi \n"; });
+
+	/// Popup version: Add a new data widget controlled using custom getter/setter functions
+	template <typename Type> detail::FormWidget<Type> *
+		addVariableOnPopup(const std::string &label, const std::function<void(Type)> &setter,
+			const std::function<Type()> &getter, bool editable = true) {
+
+		mCurPanel = new Widget(mCurPopupWindow);
+		mCurPanel->setLayout(new BoxLayout(Orientation::Horizontal, Alignment::Fill, 0, 0));
+
+		auto widget = new detail::FormWidget<Type>(mCurPanel);
+		auto refresh = [widget, getter] {
+			Type value = getter(), current = widget->value();
+			if (value != current)
+				widget->setValue(value);
+		};
+		refresh();
+		widget->setCallback(setter);
+		widget->setEditable(editable);
+		widget->setFontSize(mWidgetFontSize);
+		Vector2i fs = widget->fixedSize();
+		widget->setFixedSize(Vector2i(fs.x() != 0 ? fs.x() : mFixedSize.x(),
+			fs.y() != 0 ? fs.y() : mFixedSize.y()));
+		mRefreshCallbacks.push_back(refresh);
+		Label *space = new Label(mCurPanel, "  " , mLabelFontName, mLabelFontSize);
+		Label *labelW = new Label(mCurPanel, label, mLabelFontName, mLabelFontSize);
+
+		return widget;
+	}
+
+	/// Popup version: Add a new data widget that exposes a raw variable in memory
+	template <typename Type> detail::FormWidget<Type> *
+		addVariableOnPopup(const std::string &label, Type &value, bool editable = true) {
+		return addVariableOnPopup<Type>(label,
+			[&](Type v) { value = v; },
+			[&]() -> Type { return value; },
+			editable
+			);
+	}
+
+	ref<Popup>  mCurPopupWindow;
+	ref<Widget> mCurPanel;	
+	ref<GroupLayout> mCurGroupLayout;
+
     /// A reference to the \ref nanogui::Screen this FormHelper is assisting.
     ref<Screen> mScreen;
 
     /// A reference to the \ref nanogui::Window this FormHelper is controlling.
-    ref<Window> mWindow;
+    ref<Window> mWindow, mWindowBak;
 
     /// A reference to the \ref nanogui::AdvancedGridLayout this FormHelper is using.
     ref<AdvancedGridLayout> mLayout;
 
+
+protected:
+  
     /// The callbacks associated with all widgets this FormHelper is managing.
     std::vector<std::function<void()>> mRefreshCallbacks;
 
